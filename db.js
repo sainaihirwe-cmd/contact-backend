@@ -1,7 +1,14 @@
 import 'dotenv/config';
 import pkg from 'pg';
 const { Pool } = pkg;
- 
+
+const requiredDatabaseVariables = ['PGUSER', 'PGPASSWORD', 'PGHOST', 'PGPORT', 'PGDATABASE'];
+const missingDatabaseVariables = requiredDatabaseVariables.filter((name) => !process.env[name]);
+
+if (missingDatabaseVariables.length > 0) {
+  throw new Error(`Missing PostgreSQL environment variables: ${missingDatabaseVariables.join(', ')}`);
+}
+
 const pool = new Pool({
   user: process.env.PGUSER,
   password: process.env.PGPASSWORD,

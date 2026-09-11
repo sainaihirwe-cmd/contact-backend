@@ -41,7 +41,12 @@ initializeDatabase()
     });
   })
   .catch((error) => {
-    console.error('PostgreSQL initialization error:', error.message);
+    console.error('PostgreSQL initialization error:', {
+      message: error.message,
+      code: error.code,
+      detail: error.detail,
+      hint: error.hint,
+    });
     process.exit(1);
   });
 
