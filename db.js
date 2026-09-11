@@ -17,8 +17,10 @@ const pool = new Pool({
   database: process.env.PGDATABASE,
 });
 
-export async function initializeDatabase() {
-  await pool.query(`
+export async function initializeDatabase({ retries = 5, delayMs = 1000 } = {}) {
+  for (let attempt = 1; attempt <= retries; attempt += 1) {
+    try {
+      await pool.query(`
     CREATE TABLE IF NOT EXISTS users (
       id SERIAL PRIMARY KEY,
       username VARCHAR(100) NOT NULL,
@@ -64,7 +66,16 @@ export async function initializeDatabase() {
       created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
       updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
     );
-  `);
+      `);
+      return;
+    } catch (error) {
+      if (attempt === retries) {
+        throw error;
+      }
+
+      await new Promise((resolve) => setTimeout(resolve, delayMs));
+    }
+  }
 }
  
 export default pool;
