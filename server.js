@@ -8,7 +8,7 @@ import LoginRoutes from './routes/LoginRoutes.js';
 import ProductRoutes from './routes/ProductRoutes.js';
 import userRoutes from './routes/UserRoutes.js';
 const app = express();
-const port = process.env.PORT || 3032;
+const port = process.env.PORT || 5050;
 
 app.use(cors({ origin: true, credentials: true }));
 app.use(express.json());
