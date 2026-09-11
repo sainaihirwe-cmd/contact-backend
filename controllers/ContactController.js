@@ -1,5 +1,3 @@
-import Contact from '../models/Contact.js';
-import mongoose from 'mongoose';
 import pool from '../db.js';
 export const createContact = async (req, res) => {
   try {
@@ -33,19 +31,17 @@ export const createContact = async (req, res) => {
       return res.status(400).json({ success: false, errors });
     }
 
-    const contact = new Contact({
-      name: cleanName,
-      email: cleanEmail,
-      message: cleanMessage,
-      phone: cleanPhone || undefined,
-    });
-
-    await contact.save();
+    const result = await pool.query(
+      `INSERT INTO contacts (name, email, message, phone)
+       VALUES ($1, $2, $3, $4)
+       RETURNING id, name, email, message, phone, created_at AS "createdAt"`,
+      [cleanName, cleanEmail, cleanMessage, cleanPhone || null]
+    );
 
     return res.status(201).json({
       success: true,
       message: 'Contact submitted successfully',
-      data: contact,
+      data: result.rows[0],
     });
   } catch (error) {
     return res.status(500).json({
@@ -56,11 +52,11 @@ export const createContact = async (req, res) => {
 };
 export const getContacts = async (req, res) => {
   try {
-    // If the database is not connected, return an empty list instead of an error
-    if (mongoose.connection.readyState !== 1) {
-      return res.status(200).json({ success: true, count: 0, data: [] });
-    }
-    const contacts = await Contact.find().sort({ createdAt: -1 }).lean();
+    const result = await pool.query(
+      `SELECT id, name, email, message, phone, created_at AS "createdAt"
+       FROM contacts ORDER BY created_at DESC`
+    );
+    const contacts = result.rows;
 
     return res.status(200).json({
       success: true,

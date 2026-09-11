@@ -1,8 +1,7 @@
 import 'dotenv/config.js';
-import pool from './db.js';
+import pool, { initializeDatabase } from './db.js';
 import express from 'express';
 import cors from 'cors';
-import mongoose from 'mongoose';
 import ContactRoutes from './routes/ContactRoutes.js';
 import RegisterRoutes from './routes/RegisterRoutes.js';
 import LoginRoutes from './routes/LoginRoutes.js';
@@ -10,23 +9,15 @@ import ProductRoutes from './routes/ProductRoutes.js';
 import userRoutes from './routes/UserRoutes.js';
 const app = express();
 const port = process.env.PORT || 3032;
-const mongoURI = process.env.MONGODB_URI;
 
 app.use(cors({ origin: true, credentials: true }));
 app.use(express.json());
-
-mongoose
-  .connect(mongoURI, {
-    serverSelectionTimeoutMS: 5000,
-  })
-  .then(() => console.log('Connected to MongoDB successfully!'))
-  .catch((error) => console.error('MongoDB connection error:', error.message));
 
 app.get('/api/health', (req, res) => {
   res.status(200).json({
     success: true,
     message: 'API is running',
-    database: mongoose.connection.readyState === 1 ? 'connected' : 'disconnected',
+    database: 'postgres',
   });
 });
 
@@ -43,8 +34,15 @@ app.use((req, res) => {
   });
 });
 
-app.listen(port, () => {
-  console.log('Server started at http://localhost:' + port);
-});
+initializeDatabase()
+  .then(() => {
+    app.listen(port, () => {
+      console.log('Server started at http://localhost:' + port);
+    });
+  })
+  .catch((error) => {
+    console.error('PostgreSQL initialization error:', error.message);
+    process.exit(1);
+  });
 
 export default app;

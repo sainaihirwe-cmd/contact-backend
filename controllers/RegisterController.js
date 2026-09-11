@@ -1,9 +1,9 @@
 import jwt from 'jsonwebtoken';
-import User from '../models/Register.js';
+import bcrypt from 'bcryptjs';
 import pool from '../db.js';
 const createToken = (user) => jwt.sign(
   {
-    id: user._id,
+    id: user.id,
     email: user.email,
     username: user.username,
     role: user.role || 'user',
@@ -28,11 +28,16 @@ export const registerUser = async (req, res) => {
 
     if (errors.length > 0) return res.status(400).json({ success: false, errors });
 
-    const existing = await User.findOne({ email: cleanEmail });
-    if (existing) return res.status(409).json({ success: false, message: 'Email already registered' });
+    const existing = await pool.query('SELECT id FROM users WHERE email = $1', [cleanEmail]);
+    if (existing.rowCount > 0) return res.status(409).json({ success: false, message: 'Email already registered' });
 
-    const user = new User({ username: cleanUsername, email: cleanEmail, password: cleanPassword, phone: cleanPhone || undefined, role: 'user' });
-    await user.save();
+    const result = await pool.query(
+      `INSERT INTO users (username, email, password, phone, role)
+       VALUES ($1, $2, $3, $4, 'user')
+       RETURNING id, username, email, role`,
+      [cleanUsername, cleanEmail, await bcrypt.hash(cleanPassword, 10), cleanPhone || null]
+    );
+    const user = result.rows[0];
 
     const token = createToken(user);
 
@@ -40,7 +45,7 @@ export const registerUser = async (req, res) => {
       success: true,
       message: 'Registered successfully',
       token,
-      data: { id: user._id, username: user.username, email: user.email, role: user.role || 'user' }
+      data: { id: user.id, username: user.username, email: user.email, role: user.role || 'user' }
     });
   } catch (error) {
     console.error('Register error:', error);

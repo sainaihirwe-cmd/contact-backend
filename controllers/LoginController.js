@@ -1,12 +1,10 @@
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
-import User from '../models/Register.js';
-import LoginAttempt from '../models/Login.js';
 import pool from '../db.js';
 
 const createToken = (user) => jwt.sign(
   {
-    id: user._id,
+    id: user.id,
     email: user.email,
     username: user.username,
     role: user.role || 'user',
@@ -23,18 +21,22 @@ export const loginUser = async (req, res) => {
 
     if (!cleanEmail || !cleanPassword) return res.status(400).json({ success: false, message: 'Email and password required' });
 
-    const user = await User.findOne({ email: cleanEmail });
-    const attempt = new LoginAttempt({ email: cleanEmail, ip: req.ip });
+    const userResult = await pool.query('SELECT * FROM users WHERE email = $1', [cleanEmail]);
+    const user = userResult.rows[0];
 
     if (!user) {
-      attempt.success = false;
-      await attempt.save();
+      await pool.query(
+        'INSERT INTO login_attempts (email, ip, success) VALUES ($1, $2, FALSE)',
+        [cleanEmail, req.ip]
+      );
       return res.status(401).json({ success: false, message: 'Invalid credentials' });
     }
 
     const isMatch = await bcrypt.compare(cleanPassword, user.password);
-    attempt.success = isMatch;
-    await attempt.save();
+    await pool.query(
+      'INSERT INTO login_attempts (email, ip, success) VALUES ($1, $2, $3)',
+      [cleanEmail, req.ip, isMatch]
+    );
 
     if (!isMatch) return res.status(401).json({ success: false, message: 'Invalid credentials' });
 
@@ -44,7 +46,7 @@ export const loginUser = async (req, res) => {
       success: true,
       message: 'Login successful',
       token,
-      data: { id: user._id, username: user.username, email: user.email, role: user.role || 'user' }
+      data: { id: user.id, username: user.username, email: user.email, role: user.role || 'user' }
     });
   } catch (error) {
     console.error('Login error:', error.message);

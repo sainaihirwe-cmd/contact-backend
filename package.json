@@ -4,6 +4,7 @@
   "author": "",
   "main": "server.js",
   "scripts": {
+    "start": "node server.js",
     "dev": "nodemon server.js"
   },
   "keywords": [],
@@ -16,8 +17,6 @@
     "dotenv": "^17.4.2",
     "express": "^5.2.1",
     "jsonwebtoken": "^9.0.3",
-    "mongodb": "^7.6.0",
-    "mongoose": "^9.9.4",
     "multer": "^2.2.0",
     "multer-storage-cloudinary": "^4.0.0",
     "nodemon": "^3.1.14",

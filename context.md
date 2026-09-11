@@ -3,7 +3,7 @@ Tasks
 Create POST /api/contact endpoint
 Validate all fields before saving (name, email, message required; phone optional)
 Return validation errors for invalid fields
-Save submission to database (Mongodb)
+Save submission to PostgreSQL database
 Return success response with confirmation
 Create GET /api/contact endpoint to list submissions (for verification)
 Acceptance Criteria
