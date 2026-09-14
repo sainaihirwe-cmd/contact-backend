@@ -21,7 +21,7 @@ const port = process.env.PORT || 5050;
 
 app.use(
   cors({
-    origin: true,
+    origin: contact-fronte.netlify.app,
     credentials: true,
   })
 );
