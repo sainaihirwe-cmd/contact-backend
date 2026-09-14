@@ -1,17 +1,36 @@
-import 'dotenv/config.js';
-import pool, { initializeDatabase } from './db.js';
+import 'dotenv/config';
+
 import express from 'express';
 import cors from 'cors';
+
+import { initializeDatabase } from './db.js';
+
 import ContactRoutes from './routes/ContactRoutes.js';
 import RegisterRoutes from './routes/RegisterRoutes.js';
 import LoginRoutes from './routes/LoginRoutes.js';
 import ProductRoutes from './routes/ProductRoutes.js';
 import userRoutes from './routes/UserRoutes.js';
+
 const app = express();
+
 const port = process.env.PORT || 5050;
 
-app.use(cors({ origin: true, credentials: true }));
+// =========================
+// Middleware
+// =========================
+
+app.use(
+  cors({
+    origin: true,
+    credentials: true,
+  })
+);
+
 app.use(express.json());
+
+// =========================
+// Health Check
+// =========================
 
 app.get('/api/health', (req, res) => {
   res.status(200).json({
@@ -21,11 +40,23 @@ app.get('/api/health', (req, res) => {
   });
 });
 
+// =========================
+// Routes
+// =========================
+
 app.use('/api/contact', ContactRoutes);
+
 app.use('/api/auth/register', RegisterRoutes);
+
 app.use('/api/auth/login', LoginRoutes);
+
 app.use('/api/products', ProductRoutes);
+
 app.use('/api/users', userRoutes);
+
+// =========================
+// 404
+// =========================
 
 app.use((req, res) => {
   res.status(404).json({
@@ -34,10 +65,14 @@ app.use((req, res) => {
   });
 });
 
+// =========================
+// Start Server
+// =========================
+
 initializeDatabase()
   .then(() => {
     app.listen(port, () => {
-      console.log('Server started at http://localhost:' + port);
+      console.log(`Server started on port ${port}`);
     });
   })
   .catch((error) => {
@@ -47,6 +82,7 @@ initializeDatabase()
       detail: error.detail,
       hint: error.hint,
     });
+
     process.exit(1);
   });
 

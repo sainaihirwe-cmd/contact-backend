@@ -3,7 +3,7 @@ import pkg from 'pg';
 const { Pool } = pkg;
 
 const app = express();
-const PORT = 3032;
+const PORT = 5050;
 
 // 1. DATABASE CONNECTION CONFIGURATION
 const pool = new Pool({
