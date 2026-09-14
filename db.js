@@ -118,9 +118,32 @@ export async function initializeDatabase() {
         name VARCHAR(255) NOT NULL,
         description TEXT,
         price NUMERIC(10, 2) DEFAULT 0,
+        quantity INTEGER DEFAULT 0,
+        category VARCHAR(255),
         image TEXT,
+        created_by INTEGER,
+        created_by_name VARCHAR(255),
+        created_by_role VARCHAR(50),
+        updated_by INTEGER,
+        updated_by_name VARCHAR(255),
+        updated_by_role VARCHAR(50),
         created_at TIMESTAMP DEFAULT NOW()
       );
+    `);
+
+    await client.query(`
+      ALTER TABLE products
+      ADD COLUMN IF NOT EXISTS id SERIAL,
+      ADD COLUMN IF NOT EXISTS quantity INTEGER DEFAULT 0,
+      ADD COLUMN IF NOT EXISTS category VARCHAR(255),
+      ADD COLUMN IF NOT EXISTS created_by INTEGER,
+      ADD COLUMN IF NOT EXISTS created_by_name VARCHAR(255),
+      ADD COLUMN IF NOT EXISTS created_by_role VARCHAR(50),
+      ADD COLUMN IF NOT EXISTS updated_by INTEGER,
+      ADD COLUMN IF NOT EXISTS updated_by_name VARCHAR(255),
+      ADD COLUMN IF NOT EXISTS updated_by_role VARCHAR(50),
+      ADD COLUMN IF NOT EXISTS created_at TIMESTAMP DEFAULT NOW(),
+      ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP DEFAULT NOW();
     `);
 
     console.log('Database initialized successfully');
