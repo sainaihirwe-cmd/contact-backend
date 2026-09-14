@@ -47,6 +47,33 @@ export async function initializeDatabase() {
         name VARCHAR(255),
         email VARCHAR(255) UNIQUE NOT NULL,
         password TEXT NOT NULL,
+        username VARCHAR(255),
+        phone VARCHAR(20),
+        role VARCHAR(50) DEFAULT 'user',
+        created_at TIMESTAMP DEFAULT NOW()
+      );
+    `);
+
+    await client.query(`
+      ALTER TABLE users
+      ADD COLUMN IF NOT EXISTS id SERIAL,
+      ADD COLUMN IF NOT EXISTS username VARCHAR(255),
+      ADD COLUMN IF NOT EXISTS phone VARCHAR(20),
+      ADD COLUMN IF NOT EXISTS role VARCHAR(50) DEFAULT 'user';
+    `);
+
+    await client.query(`
+      UPDATE users
+      SET username = split_part(email, '@', 1)
+      WHERE username IS NULL;
+    `);
+
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS login_attempts (
+        id SERIAL PRIMARY KEY,
+        email VARCHAR(255) NOT NULL,
+        ip VARCHAR(255),
+        success BOOLEAN NOT NULL DEFAULT FALSE,
         created_at TIMESTAMP DEFAULT NOW()
       );
     `);
