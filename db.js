@@ -61,8 +61,24 @@ export async function initializeDatabase() {
         name VARCHAR(255) NOT NULL,
         email VARCHAR(255) NOT NULL,
         message TEXT NOT NULL,
+        phone VARCHAR(20),
         created_at TIMESTAMP DEFAULT NOW()
       );
+    `);
+
+    await client.query(`
+      ALTER TABLE contacts
+      ADD COLUMN IF NOT EXISTS phone VARCHAR(20);
+    `);
+
+    await client.query(`
+      ALTER TABLE contacts
+      ADD COLUMN IF NOT EXISTS id SERIAL;
+    `);
+
+    await client.query(`
+      ALTER TABLE contacts
+      ADD COLUMN IF NOT EXISTS created_at TIMESTAMP DEFAULT NOW();
     `);
 
     // =========================
